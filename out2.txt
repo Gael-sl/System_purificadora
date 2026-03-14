@@ -1,0 +1,7 @@
+
+            </tr>
+          </thead>
+          <tbody>
+            {[...pedidos].sort((a,b)=>b.id-a.id).map(p => {
+              const c = getCliente(p.cliente_id, p.notas);
+              return
