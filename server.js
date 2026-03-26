@@ -677,11 +677,10 @@ app.post('/api/rutas/optimize', authMiddleware, requireRole(['admin','repartidor
   res.json({route, geometry});
 });
 
-// Servir archivos estáticos (HTML/CSS/JS)
-app.use(express.static(path.join(__dirname, 'frontend/dist')));
-
-app.get('*', (req,res)=>{
-  res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
+// Ya NO servimos archivos estáticos desde Express porque Frontend está en Netlify.
+// Si alguien entra a la raíz del backend directo, que vea un mensaje simple.
+app.get('/', (req,res)=>{
+  res.send('API Backend de Purificadora Diamante running.');
 });
 
 async function startServer(){
