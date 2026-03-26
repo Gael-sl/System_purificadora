@@ -25,16 +25,11 @@ if (DATABASE_URL) {
   });
 }
 
-// Datos en memoria (fallback)
-let clientes = [{id:1,nombre:"Casa López",telefono:"555-111-2222",direccion:"Col. Centro",lat:25.6638889,lng:-108.638333,frecuencia:12,volumen:42},{id:2,nombre:"Oficinas Delta",telefono:"555-333-4444",direccion:"Av. Reforma",lat:25.660,lng:-108.64,frecuencia:18,volumen:58},{id:3,nombre:"Gym Vital",telefono:"555-555-6666",direccion:"Roma Norte",lat:25.670,lng:-108.63,frecuencia:10,volumen:35},{id:4,nombre:"Tienda Sol",telefono:"555-777-8888",direccion:"Doctores",lat:25.655,lng:-108.62,frecuencia:8,volumen:18},{id:5,nombre:"Depa Prado",telefono:"555-999-0000",direccion:"Del Valle",lat:25.668,lng:-108.65,frecuencia:16,volumen:65}];
-let pedidos = [{id:101,cliente_id:1,total:180,estado:"pendiente",cantidad:6,creado:"2026-02-24T10:00:00",notas:"Entrega antes de las 2pm"},{id:102,cliente_id:2,total:320,estado:"en_ruta",cantidad:10,creado:"2026-02-25T08:30:00",notas:"Entrada por estacionamiento"},{id:103,cliente_id:3,total:120,estado:"pendiente",cantidad:4,creado:"2026-02-25T09:15:00",notas:"Llamar al llegar"},{id:104,cliente_id:4,total:90,estado:"pendiente",cantidad:3,creado:"2026-02-25T07:45:00",notas:"Tocar timbre 2"},{id:105,cliente_id:5,total:390,estado:"pendiente",cantidad:12,creado:"2026-02-25T06:45:00",notas:"Dejar en recepción"}];
-let ventas = [{id:201,cliente_id:1,total:180,metodo:"efectivo",creado:"2026-02-24T10:00:00"},{id:202,cliente_id:2,total:320,metodo:"tarjeta",creado:"2026-02-24T12:30:00"},{id:203,cliente_id:3,total:120,metodo:"efectivo",creado:"2026-02-23T09:00:00"},{id:204,cliente_id:5,total:410,metodo:"transferencia",creado:"2026-02-22T16:20:00"}];
-let inventario = [
-  {id:1,item:"Garrafon lleno",stock:140,umbral:60,precio:18},
-  {id:2,item:"Garrafon vacio",stock:220,umbral:80,precio:80},
-  {id:3,item:"Sellos",stock:480,umbral:150,precio:0},
-  {id:4,item:"Tapas",stock:900,umbral:300,precio:0}
-];
+// Datos en memoria (fallback) — vacíos para prod/hosting
+let clientes = [];
+let pedidos = [];
+let ventas = [];
+let inventario = [];
 let gastos = [];
 
 // Cuentas de ejemplo (passwords hashed)
@@ -42,7 +37,7 @@ const accounts = [
   {username: "admin", passwordHash: bcrypt.hashSync("agua2026", 8), rol: "admin", nombre: "Admin"},
   {username: "reparto", passwordHash: bcrypt.hashSync("ruta2026", 8), rol: "repartidor", nombre: "Reparto"}
 ];
-const RESET_KEY = process.env.RESET_KEY || 'admin_reset_2026';
+let RESET_KEY = process.env.RESET_KEY || 'admin_reset_2026';
 
 // Haversine distance (km)
 function distanceKm(a,b){
@@ -332,6 +327,13 @@ app.post("/api/auth/reset-password", async (req,res)=>{
   const acc = accounts.find(a=>a.username===username && a.rol===rol);
   if(!acc) return res.status(404).json({error:"User not found"});
   acc.passwordHash = bcrypt.hashSync(newPassword, 8);
+  res.json({ok:true});
+});
+
+app.post("/api/auth/admin/update-key", authMiddleware, requireRole(['admin']), async (req,res)=>{
+  const { newKey } = req.body || {};
+  if(!newKey) return res.status(400).json({error:"Missing new key"});
+  RESET_KEY = newKey;
   res.json({ok:true});
 });
 

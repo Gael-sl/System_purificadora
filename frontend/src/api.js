@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// Usa VITE_API_URL en producción, cae a localhost en dev
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api'
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 });
 
 api.interceptors.request.use(config => {
@@ -11,5 +12,17 @@ api.interceptors.request.use(config => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

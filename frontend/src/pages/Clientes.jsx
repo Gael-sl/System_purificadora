@@ -208,7 +208,12 @@ export default function Clientes() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-800">Nuevo Cliente</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">&times;</button>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="w-10 h-10 flex items-center justify-center rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors text-2xl leading-none pb-1"
+              >
+                &times;
+              </button>
             </div>
             <form onSubmit={save} className="p-6 space-y-4">
               <div>

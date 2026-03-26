@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Navigation } from 'lucide-react';
 import api from '../api';
 import L from 'leaflet';
 
@@ -23,6 +24,7 @@ export default function Rutas() {
   const [position, setPosition] = useState(null);
   const [geoError, setGeoError] = useState('');
   const [watchId, setWatchId] = useState(null);
+  const [expanded, setExpanded] = useState(false); // Mobile sheet state
 
   const baseIcon = L.icon({
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -162,23 +164,25 @@ export default function Rutas() {
   const baseResLabel = (b) => b.address ? b.address : 'Base';
 
   return (
-    <div className="h-full flex flex-col pt-4 lg:pt-0">
-      <div className="flex justify-between items-center px-4 lg:px-0 mb-2 lg:mb-6">
-        <h1 className="text-xl lg:text-2xl font-bold text-slate-800">Rutas de Entrega</h1>
-        {user?.rol === 'repartidor' && (
-          <div className="flex items-center gap-3">
-            {geoError && <span className="text-xs text-amber-700">{geoError}</span>}
-            {!tracking ? (
-              <button onClick={startTracking} className="text-sm text-white bg-emerald-600 px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-700">
-                Iniciar recorrido
-              </button>
-            ) : (
-              <button onClick={stopTracking} className="text-sm text-white bg-rose-600 px-3 py-1.5 rounded-lg font-medium hover:bg-rose-700">
-                Detener
-              </button>
-            )}
-          </div>
-        )}
+    <div className="h-full flex flex-col pt-2 lg:pt-0">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center px-6 lg:px-0 mb-2 gap-2">
+        <div className="flex justify-between items-center w-full">
+          <h1 className="text-xl lg:text-2xl font-bold text-slate-800">Ruta de Entrega</h1>
+          {user?.rol === 'repartidor' && (
+            <div className="flex items-center gap-2">
+              {!tracking ? (
+                <button onClick={startTracking} className="text-xs text-white bg-emerald-600 px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-700 shadow-sm whitespace-nowrap">
+                  Iniciar Recorrido
+                </button>
+              ) : (
+                <button onClick={stopTracking} className="text-xs text-white bg-rose-600 px-3 py-1.5 rounded-lg font-medium hover:bg-rose-700 shadow-sm whitespace-nowrap">
+                  Detener
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        {geoError && <div className="text-xs text-amber-700 bg-amber-50 rounded border border-amber-100 px-2 py-1 truncate max-w-full">{geoError}</div>}
       </div>
 
       <div className="hidden lg:grid grid-cols-3 gap-6 flex-1 min-h-0">
@@ -209,9 +213,31 @@ export default function Rutas() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 overflow-hidden flex flex-col">
           <div className="flex justify-between items-center mb-6 shrink-0">
             <h3 className="font-semibold text-slate-800">Ruta Sugerida</h3>
-            <button onClick={load} className="text-sm text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100">
-              Recalcular
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                   // Filtramos los puntos que tienen coordenadas
+                   const points = ruta.filter(p => !p.cliente?.nombre.includes('📌') && p.lat && p.lng);
+                   if (points.length) {
+                     const coords = points.map(p => `${p.lat},${p.lng}`);
+                     const destination = coords.pop(); // Ultimo punto es destino
+                     const waypoints = coords.join('|'); // Resto son paradas
+                     
+                     const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
+                     window.open(url, '_blank');
+                   }
+                }}
+                className="text-sm bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-700 shadow-sm flex items-center gap-2 transition-colors"
+                title="Abrir ruta en Google Maps"
+              >
+                <Navigation size={16} /> 
+                <span className="hidden sm:inline">Navegar</span>
+                <span className="sm:hidden">GPS</span>
+              </button>
+              <button onClick={load} className="text-sm text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100">
+                Recalcular
+              </button>
+            </div>
           </div>
 
           {missingCoords > 0 && (
@@ -269,15 +295,35 @@ export default function Rutas() {
           </MapContainer>
         </div>
 
-        <div className="bg-white px-4 pt-3 pb-2 flex flex-col shrink-0 h-[170px] z-10 shadow-[0_-8px_15px_-3px_rgba(0,0,0,0.1)] rounded-t-xl relative border-t border-slate-200">
-          <div className="flex justify-center mb-1 shrink-0">
+        <div className={`bg-white px-4 pt-3 pb-8 flex flex-col shrink-0 z-[1000] shadow-[0_-8px_15px_-3px_rgba(0,0,0,0.1)] rounded-t-xl absolute bottom-0 left-0 right-0 border-t border-slate-200 transition-all duration-300 ease-in-out ${expanded ? 'h-[85vh]' : 'h-[35vh]'}`}>
+          <div 
+            className="flex justify-center mb-1 shrink-0 p-2 -mt-2 cursor-grab active:cursor-grabbing"
+            onClick={() => setExpanded(!expanded)}
+          >
             <div className="w-10 h-1.5 bg-slate-200 rounded-full" />
           </div>
           <div className="flex items-center justify-between mb-2 shrink-0">
             <h3 className="font-semibold text-slate-800">Ruta sugerida</h3>
-            <button onClick={load} className="text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100">
-              Recalcular
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                   const points = ruta.filter(p => !p.cliente?.nombre.includes('📌') && p.lat && p.lng);
+                   if (points.length) {
+                     const coords = points.map(p => `${p.lat},${p.lng}`);
+                     const destination = coords.pop(); 
+                     const waypoints = coords.join('|'); 
+                     const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
+                     window.open(url, '_blank');
+                   }
+                }}
+                className="text-xs text-white bg-emerald-600 px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-700 shadow-sm flex items-center gap-1"
+              >
+                <Navigation size={14} /> <span>Navegar</span>
+              </button>
+              <button onClick={load} className="text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100">
+                Recalcular
+              </button>
+            </div>
           </div>
 
           {missingCoords > 0 && (
