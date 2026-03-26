@@ -87,16 +87,6 @@ export default function Layout({ children, user, onLogout }) {
               </button>
             )}
           </div>
-
-          {user.rol === 'admin' && (
-            <button
-              onClick={() => setShowAdminSettings(true)}
-              className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
-            >
-              <Settings size={18} />
-              <span>Configuración de seguridad</span>
-            </button>
-          )}
           <button 
             onClick={onLogout}
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
