@@ -168,19 +168,6 @@ export default function Rutas() {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center px-6 lg:px-0 mb-2 gap-2">
         <div className="flex justify-between items-center w-full">
           <h1 className="text-xl lg:text-2xl font-bold text-slate-800">Ruta de Entrega</h1>
-          {user?.rol === 'repartidor' && (
-            <div className="flex items-center gap-2">
-              {!tracking ? (
-                <button onClick={startTracking} className="text-xs text-white bg-emerald-600 px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-700 shadow-sm whitespace-nowrap">
-                  Iniciar Recorrido
-                </button>
-              ) : (
-                <button onClick={stopTracking} className="text-xs text-white bg-rose-600 px-3 py-1.5 rounded-lg font-medium hover:bg-rose-700 shadow-sm whitespace-nowrap">
-                  Detener
-                </button>
-              )}
-            </div>
-          )}
         </div>
         {geoError && <div className="text-xs text-amber-700 bg-amber-50 rounded border border-amber-100 px-2 py-1 truncate max-w-full">{geoError}</div>}
       </div>
